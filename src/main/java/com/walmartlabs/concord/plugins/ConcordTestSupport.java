@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.junit.Assume.assumeTrue;
+
 public abstract class ConcordTestSupport
 {
     protected String basedir;
@@ -54,17 +56,19 @@ public abstract class ConcordTestSupport
         RequiresAwsCredentials requiresAws = getClass().getAnnotation(RequiresAwsCredentials.class);
         if (requiresAws != null) {
             awsCredentials = awsCredentials();
+
+            // Skip this test if we don't have valid AWS credentials
+            assumeTrue(awsCredentials != null);
+
             System.out.println("Using the following AWS credentials:");
             System.out.println();
-            if (awsCredentials != null) {
-                System.out.println("AWS Access Key ID: " + awsCredentials.accessKey);
-                System.out.println("AWS Secret Key   : " + awsCredentials.secretKey);
-            }
-            System.out.println("workDir: " + workDir);
-            System.out.println();
+            System.out.println("AWS Access Key ID: " + awsCredentials.accessKey);
+            System.out.println("AWS Secret Key   : " + awsCredentials.secretKey);
         }
 
         Files.createDirectories(workDir);
+        System.out.println("workDir: " + workDir);
+        System.out.println();
 
         lockService = Mockito.mock(LockService.class);
         secretService = createSecretService(workDir);
