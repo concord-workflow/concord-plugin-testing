@@ -9,7 +9,7 @@
     </parent>
     <artifactId>concord-plugin-testing</artifactId>
     <groupId>ca.vanzyl.concord.plugins</groupId>
-    <version>0.0.5-SNAPSHOT</version>
+    <version>0.0.5</version>
     <packaging>takari-jar</packaging>
 
     <properties>
@@ -68,4 +68,8 @@
             <artifactId>wiremock</artifactId>
         </dependency>
     </dependencies>
+
+  <scm>
+    <tag>concord-plugin-testing-0.0.5</tag>
+  </scm>
 </project>
