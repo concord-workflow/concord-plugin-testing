@@ -110,6 +110,11 @@ public abstract class ConcordTestSupport
         return ImmutableMap.builder();
     }
 
+    protected String normalizedCommandLineArguments(Context context)
+    {
+        return varAsString(context, "normalizedCommandLineArguments");
+    }
+
     // ------------------------------------------------------------------------------------------------------
     // Workspace
     // ------------------------------------------------------------------------------------------------------
