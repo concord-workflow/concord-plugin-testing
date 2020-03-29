@@ -158,6 +158,11 @@ public abstract class ConcordTestSupport
         return target;
     }
 
+    protected File file(String name)
+    {
+        return new File(new File(basedir, "src/test"), name);
+    }
+
     // ------------------------------------------------------------------------------------------------------
     // Object storage
     // ------------------------------------------------------------------------------------------------------
