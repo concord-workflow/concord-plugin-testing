@@ -148,10 +148,12 @@ public abstract class ConcordTestSupport
     protected void deleteDirectory(Path pathToBeDeleted)
             throws IOException
     {
-        Files.walk(pathToBeDeleted)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        if(Files.exists(pathToBeDeleted)) {
+            Files.walk(pathToBeDeleted)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
     }
 
     protected File target(String name)
