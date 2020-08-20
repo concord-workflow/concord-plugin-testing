@@ -1,11 +1,9 @@
 package com.walmartlabs.concord.plugins;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.walmartlabs.concord.common.IOUtils;
-import com.walmartlabs.concord.sdk.Context;
-import com.walmartlabs.concord.sdk.DependencyManager;
-import com.walmartlabs.concord.sdk.SecretService;
+import com.walmartlabs.concord.runtime.v2.sdk.DependencyManager;
+import com.walmartlabs.concord.runtime.v2.sdk.SecretService;
 import org.junit.Before;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -27,7 +25,7 @@ import java.util.Properties;
 
 import static org.junit.Assume.assumeTrue;
 
-public abstract class ConcordTestSupport
+public abstract class ConcordTestSupportV2
 {
     protected String basedir;
     protected final static String CONCORD_TMP_DIR_KEY = "CONCORD_TMP_DIR";
@@ -66,35 +64,17 @@ public abstract class ConcordTestSupport
         secretService = createSecretService(workDir);
     }
 
-    // ------------------------------------------------------------------------------------------------------
-    // Context
-    // ------------------------------------------------------------------------------------------------------
-
-    protected Context context() {
-        return context(Maps.newHashMap());
-    }
-
-    protected Context context(Map<String,Object> variables) {
-        Map<String,Object> contextVariables = requiredContextVariables(workDir);
-        contextVariables.putAll(variables);
-        return new InterpolatingMockContext(contextVariables);
-    }
-
-    private Map<String, Object> requiredContextVariables(Path workDir) {
-        Map<String, Object> args = new HashMap<>();
-        args.put(com.walmartlabs.concord.sdk.Constants.Request.PROCESS_INFO_KEY, Collections.singletonMap("sessionKey", "xyz"));
-        args.put(com.walmartlabs.concord.sdk.Constants.Context.WORK_DIR_KEY, workDir.toAbsolutePath().toString());
-        return args;
-    }
-
-    protected String varAsString(Context context, String name)
+    public static String interpolate(String text, Map<String, Object> values)
     {
-        return ((String) context.getVariable(name));
-    }
-
-    protected Map<String, String> varAsMap(Context context, String name)
-    {
-        return ((Map<String, String>) context.getVariable(name));
+        for (Map.Entry<String, Object> kv : values.entrySet()) {
+            String k = kv.getKey();
+            Object v = kv.getValue();
+            if (v == null) {
+                throw new NullPointerException("The value of the key '" + k + "' is null.");
+            }
+            text = text.replace("${" + k + "}", v.toString());
+        }
+        return text;
     }
 
     public static ImmutableMap.Builder<String, Object> mapBuilder()
@@ -102,9 +82,9 @@ public abstract class ConcordTestSupport
         return ImmutableMap.builder();
     }
 
-    protected String normalizedCommandLineArguments(Context context)
+    protected String normalizedCommandLineArguments(Map<String, Object> m)
     {
-        return varAsString(context, "normalizedCommandLineArguments");
+        return (String) m.get("normalizedCommandLineArguments");
     }
 
     // ------------------------------------------------------------------------------------------------------
@@ -140,7 +120,7 @@ public abstract class ConcordTestSupport
     protected void deleteDirectory(Path pathToBeDeleted)
             throws IOException
     {
-        if(Files.exists(pathToBeDeleted)) {
+        if (Files.exists(pathToBeDeleted)) {
             Files.walk(pathToBeDeleted)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
@@ -182,10 +162,21 @@ public abstract class ConcordTestSupport
             }
         }
 
-        Map<String, String> m = Collections.singletonMap("private", workDir.relativize(dst).toString());
-
         SecretService ss = Mockito.mock(SecretService.class);
-        Mockito.when(ss.exportKeyAsFile(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(m);
+        Mockito.when(ss.exportKeyAsFile(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(new SecretService.KeyPair()
+        {
+            @Override
+            public Path privateKey()
+            {
+                return workDir.relativize(dst);
+            }
+
+            @Override
+            public Path publicKey()
+            {
+                return null;
+            }
+        });
 
         return ss;
     }
@@ -283,7 +274,7 @@ public abstract class ConcordTestSupport
     private static Map<String, Properties> parseIni(File file)
     {
         try (Reader reader = new FileReader(file)) {
-            Map<String, Properties> result = new HashMap();
+            Map<String, Properties> result = new HashMap<>();
             new Properties()
             {
 

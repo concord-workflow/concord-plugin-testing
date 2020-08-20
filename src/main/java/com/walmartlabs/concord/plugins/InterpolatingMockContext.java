@@ -9,7 +9,7 @@ public class InterpolatingMockContext
         extends MockContext
 {
 
-    private Map<String, Object> delegate;
+    private final Map<String, Object> delegate;
 
     public InterpolatingMockContext(Map<String, Object> delegate)
     {
@@ -29,11 +29,10 @@ public class InterpolatingMockContext
         return delegate.toString();
     }
 
-    public static String interpolate(String text, Map<?, ?> namespace)
+    public static String interpolate(String text, Map<String, Object> namespace)
     {
-        Iterator<?> keys = namespace.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = keys.next().toString();
+        for (Object o : namespace.keySet()) {
+            String key = o.toString();
             Object obj = namespace.get(key);
             if (obj == null) {
                 throw new NullPointerException("The value of the key '" + key + "' is null.");

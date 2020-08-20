@@ -1,6 +1,5 @@
 package com.walmartlabs.concord.plugins;
 
-import com.walmartlabs.concord.sdk.DependencyManager;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,7 +14,8 @@ import java.net.URI;
 import java.nio.file.Path;
 
 public class OKHttpDownloadManager
-        implements DependencyManager
+        implements com.walmartlabs.concord.sdk.DependencyManager,
+        com.walmartlabs.concord.runtime.v2.sdk.DependencyManager
 {
 
     private final File toolDir;
